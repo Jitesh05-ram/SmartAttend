@@ -1,18 +1,26 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # ============================================================
-# BASE DIRECTORY (absolute path to project root, e.g. SmartAttend/)
+# BASE DIRECTORY
 # ============================================================
 
-BASE_DIR = os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__))
-)
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-DB_PATH = os.path.join(BASE_DIR, "database", "smartattend.db")
+# ============================================================
+# INSTANCE DIRECTORY
+# ============================================================
+# Render needs a writable location for SQLite.
+# This directory will be created automatically.
+
+INSTANCE_DIR = BASE_DIR / "instance"
+INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
+
+DB_PATH = INSTANCE_DIR / "smartattend.db"
 
 
 class Config:
@@ -30,10 +38,25 @@ class Config:
     # DATABASE
     # ========================================================
 
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL",
-        f"sqlite:///{DB_PATH}"
-    )
+    DATABASE_URL = os.getenv("DATABASE_URL")
+
+    # Render PostgreSQL sometimes provides postgres://
+    # SQLAlchemy expects postgresql://
+
+    if DATABASE_URL:
+        if DATABASE_URL.startswith("postgres://"):
+            DATABASE_URL = DATABASE_URL.replace(
+                "postgres://",
+                "postgresql://",
+                1
+            )
+
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
+
+    else:
+        SQLALCHEMY_DATABASE_URI = (
+            f"sqlite:///{DB_PATH}"
+        )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -73,10 +96,6 @@ class Config:
     # ========================================================
     # EMAIL VERIFICATION SWITCH
     # ========================================================
-    # Gmail SMTP isn't configured yet, so verification emails
-    # can't be delivered. Set this to True once MAIL_USERNAME /
-    # MAIL_PASSWORD above are filled in with a working Gmail
-    # App Password, to require email verification again.
 
     REQUIRE_EMAIL_VERIFICATION = (
         os.getenv(
@@ -95,7 +114,7 @@ class Config:
 
     UPLOAD_FOLDER = os.getenv(
         "UPLOAD_FOLDER",
-        "backend/uploads"
+        str(BASE_DIR / "backend" / "uploads")
     )
 
     # ========================================================
