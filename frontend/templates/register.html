@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Register | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <div class="text-center mb-4">
+            <h2 class="auth-title">
+                <i class="fa-solid fa-user-plus"></i>
+                SmartAttend
+            </h2>
+
+            <p class="text-muted">
+                Create your teacher account
+            </p>
+        </div>
+
+        <form action="/register" method="POST">
+
+            <!-- Full Name -->
+            <div class="mb-3">
+                <label class="form-label">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    name="name"
+                    class="form-control"
+                    placeholder="Enter Full Name"
+                    required>
+            </div>
+
+
+            <!-- Email -->
+            <div class="mb-3">
+                <label class="form-label">
+                    Email Address
+                </label>
+
+                <input
+                    type="email"
+                    name="email"
+                    class="form-control"
+                    placeholder="Enter Email"
+                    required>
+            </div>
+
+
+            <!-- Password -->
+            <div class="mb-3">
+                <label class="form-label">
+                    Password
+                </label>
+
+                <div class="password-wrapper">
+
+                    <input
+                        type="password"
+                        name="password"
+                        id="registerPassword"
+                        class="form-control"
+                        placeholder="Enter Password"
+                        required>
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        onclick="togglePassword('registerPassword', 'registerEye')"
+                        aria-label="Show password">
+
+                        <i
+                            class="fa-solid fa-eye"
+                            id="registerEye">
+                        </i>
+
+                    </button>
+
+                </div>
+            </div>
+
+
+            <!-- Confirm Password -->
+            <div class="mb-3">
+                <label class="form-label">
+                    Confirm Password
+                </label>
+
+                <div class="password-wrapper">
+
+                    <input
+                        type="password"
+                        name="confirm_password"
+                        id="confirmPassword"
+                        class="form-control"
+                        placeholder="Confirm Password"
+                        required>
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        onclick="togglePassword('confirmPassword', 'confirmEye')"
+                        aria-label="Show password">
+
+                        <i
+                            class="fa-solid fa-eye"
+                            id="confirmEye">
+                        </i>
+
+                    </button>
+
+                </div>
+            </div>
+
+
+            <!-- Create Account -->
+            <button
+                type="submit"
+                class="btn btn-primary btn-auth">
+
+                <i class="fa-solid fa-user-check"></i>
+                Create Account
+
+            </button>
+
+        </form>
+
+
+        <hr>
+
+
+        <div class="text-center">
+
+            Already have an account?
+
+            <a href="/login">
+                Login
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

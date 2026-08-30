@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="fw-bold">
+                SmartAttend Dashboard
+            </h1>
+
+            <p class="text-muted mb-0">
+                Welcome, {{ current_user.name }}
+            </p>
+        </div>
+
+        <div>
+            <a href="/logout" class="btn btn-outline-danger">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Logout
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- Statistics -->
+    <div class="row g-4 mb-4">
+
+        <!-- Students -->
+        <div class="col-md-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+                            <h6 class="text-muted">
+                                Total Students
+                            </h6>
+
+                            <h2 class="fw-bold">
+                                {{ student_count }}
+                            </h2>
+                        </div>
+
+                        <div class="fs-1 text-primary">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+
+                    </div>
+                    <a
+                    
+                           href="{{ url_for('students.add_student_page') }}"
+                           class="btn btn-outline-primary w-100 py-3">
+
+                           <i class="fa-solid fa-user-plus"></i>
+                           <br>
+                           Add Student
+
+                        </a>
+
+                    
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Subjects -->
+        <div class="col-md-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+                            <h6 class="text-muted">
+                                Total Subjects
+                            </h6>
+
+                            <h2 class="fw-bold">
+                                {{ subject_count }}
+                            </h2>
+                        </div>
+
+                        <div class="fs-1 text-success">
+                            <i class="fa-solid fa-book"></i>
+                        </div>
+
+                    </div>
+
+                    <a
+                        href="{{ url_for('subjects.list_subjects') }}"
+                        class="btn btn-success mt-3">
+
+                        Manage Subjects
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Attendance -->
+        <div class="col-md-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+                            <h6 class="text-muted">
+                                Attendance Records
+                            </h6>
+
+                            <h2 class="fw-bold">
+                                {{ attendance_count }}
+                            </h2>
+                        </div>
+
+                        <div class="fs-1 text-warning">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+
+                    </div>
+
+                    <a
+                        href="{{ url_for('attendance.mark_attendance') }}"
+                        class="btn btn-warning mt-3">
+
+                        Take Attendance
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Quick Actions -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <h4 class="fw-bold mb-4">
+                Quick Actions
+            </h4>
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+
+                    <a
+                        href="{{ url_for('students.add_student_page') }}"
+                        class="btn btn-outline-primary w-100 py-3">
+
+                        <i class="fa-solid fa-user-plus"></i>
+                        <br>
+                        Add Student
+
+                    </a>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <a
+                        href="{{ url_for('students.import_students_page') }}"
+                        class="btn btn-outline-success w-100 py-3">
+
+                        <i class="fa-solid fa-file-import"></i>
+                        <br>
+                        Import Students
+
+                    </a>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <a
+                        href="{{ url_for('attendance.mark_attendance') }}"
+                        class="btn btn-outline-warning w-100 py-3">
+
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <br>
+                        Take Attendance
+
+                    </a>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <a
+                        href="{{ url_for('reports.reports_page') }}"
+                        class="btn btn-outline-danger w-100 py-3">
+
+                        <i class="fa-solid fa-file-export"></i>
+                        <br>
+                        Export Report
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

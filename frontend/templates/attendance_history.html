@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance History | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-clock-rotate-left text-primary"></i>
+                Attendance History
+            </h2>
+            <p class="text-muted mb-0">
+                Browse and filter past attendance records.
+            </p>
+        </div>
+
+        <a href="{{ url_for('attendance.mark_attendance') }}" class="btn btn-primary">
+            <i class="fa-solid fa-clipboard-check"></i>
+            Mark Attendance
+        </a>
+
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- ================================================== -->
+    <!-- FILTERS -->
+    <!-- ================================================== -->
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <form method="GET" action="{{ url_for('attendance.history') }}" class="row g-3">
+
+                <div class="col-md-2">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ filters.date }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Subject</label>
+                    <select name="subject_id" class="form-select">
+                        <option value="">All</option>
+                        {% for subject in subjects %}
+                            <option value="{{ subject.id }}"
+                                {% if filters.subject_id == subject.id %}selected{% endif %}>
+                                {{ subject.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Student</label>
+                    <select name="student_id" class="form-select">
+                        <option value="">All</option>
+                        {% for student in students %}
+                            <option value="{{ student.id }}"
+                                {% if filters.student_id == student.id %}selected{% endif %}>
+                                {{ student.roll_number }} - {{ student.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="Present" {% if filters.status == "Present" %}selected{% endif %}>Present</option>
+                        <option value="Absent" {% if filters.status == "Absent" %}selected{% endif %}>Absent</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Batch</label>
+                    <select name="batch" class="form-select">
+                        <option value="">All</option>
+                        {% for batch in batches %}
+                            <option value="{{ batch }}" {% if filters.batch == batch %}selected{% endif %}>
+                                {{ batch }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Year</label>
+                    <select name="year" class="form-select">
+                        <option value="">All</option>
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if filters.year == year %}selected{% endif %}>
+                                {{ year }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-filter"></i>
+                        Apply Filters
+                    </button>
+                    <a href="{{ url_for('attendance.history') }}" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        Clear
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ================================================== -->
+    <!-- RESULTS -->
+    <!-- ================================================== -->
+
+    {% if records %}
+
+        <div class="card shadow-sm">
+
+            <div class="card-header bg-white">
+                <strong>{{ records|length }}</strong> record(s) found
+                {% if records|length == 500 %}
+                    <span class="text-muted">(showing latest 500 — narrow your filters for more)</span>
+                {% endif %}
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Roll No</th>
+                            <th>Student</th>
+                            <th>Batch</th>
+                            <th>Year</th>
+                            <th>Subject</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ record.date.strftime("%d-%m-%Y") }}</td>
+                            <td>{{ record.student.roll_number }}</td>
+                            <td>{{ record.student.name }}</td>
+                            <td>{{ record.student.batch or "-" }}</td>
+                            <td>{{ record.student.year or "-" }}</td>
+                            <td>{{ record.subject.name }}</td>
+                            <td class="text-center">
+                                {% if record.status == "Present" %}
+                                    <span class="badge bg-success">Present</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Absent</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    {% else %}
+
+        <div class="alert alert-info">
+            <i class="fa-solid fa-circle-info"></i>
+            No attendance records match your filters yet.
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

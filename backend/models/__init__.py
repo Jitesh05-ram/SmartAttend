@@ -1,0 +1,1 @@
+# SmartAttend database models package

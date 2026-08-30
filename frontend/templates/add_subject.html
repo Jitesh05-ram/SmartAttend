@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Add Subject | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="auth-card">
+
+        <h2 class="mb-4">
+            <i class="fa-solid fa-book"></i>
+            Add Subject
+        </h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('subjects.add_subject') }}">
+
+            <div class="mb-3">
+                <label class="form-label">Subject Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Subject Code</label>
+                <input type="text" name="code" class="form-control" placeholder="Optional">
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-save"></i>
+                Save Subject
+            </button>
+
+            <a href="{{ url_for('subjects.list_subjects') }}" class="btn btn-secondary">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

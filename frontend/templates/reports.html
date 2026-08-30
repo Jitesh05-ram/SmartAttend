@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Reports | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-chart-column text-danger"></i>
+                Attendance Reports
+            </h2>
+            <p class="text-muted mb-0">
+                Overall statistics and downloadable reports.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('reports.export_excel', subject_id=selected_subject.id if selected_subject else '', date_from=date_from, date_to=date_to) }}"
+               class="btn btn-success">
+                <i class="fa-solid fa-file-excel"></i>
+                Excel
+            </a>
+            <a href="{{ url_for('reports.export_pdf', subject_id=selected_subject.id if selected_subject else '', date_from=date_from, date_to=date_to) }}"
+               class="btn btn-danger">
+                <i class="fa-solid fa-file-pdf"></i>
+                PDF
+            </a>
+        </div>
+
+    </div>
+
+    <!-- ================================================== -->
+    <!-- FILTERS -->
+    <!-- ================================================== -->
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <form method="GET" action="{{ url_for('reports.reports_page') }}" class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+                    <label class="form-label">Subject</label>
+                    <select name="subject_id" class="form-select">
+                        <option value="">All Subjects</option>
+                        {% for subject in subjects %}
+                            <option value="{{ subject.id }}"
+                                {% if selected_subject and selected_subject.id == subject.id %}selected{% endif %}>
+                                {{ subject.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">From</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">To</label>
+                    <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fa-solid fa-filter"></i>
+                        Apply
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ================================================== -->
+    <!-- SUMMARY CARDS -->
+    <!-- ================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-primary mb-2"><i class="fa-solid fa-users"></i></div>
+                    <h6 class="text-muted">Total Students</h6>
+                    <h2 class="fw-bold">{{ total_students }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-success mb-2"><i class="fa-solid fa-check"></i></div>
+                    <h6 class="text-muted">Present</h6>
+                    <h2 class="fw-bold">{{ total_present }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-danger mb-2"><i class="fa-solid fa-xmark"></i></div>
+                    <h6 class="text-muted">Absent</h6>
+                    <h2 class="fw-bold">{{ total_absent }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-warning mb-2"><i class="fa-solid fa-percent"></i></div>
+                    <h6 class="text-muted">Attendance %</h6>
+                    <h2 class="fw-bold">{{ overall_percentage }}%</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================================================== -->
+    <!-- STUDENT-WISE -->
+    <!-- ================================================== -->
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <strong>Student-wise Attendance</strong>
+        </div>
+
+        {% if student_rows %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Student</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in student_rows %}
+                    <tr>
+                        <td>{{ s.roll_number }}</td>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.total }}</td>
+                        <td><span class="badge bg-success">{{ s.present }}</span></td>
+                        <td><span class="badge bg-danger">{{ s.absent }}</span></td>
+                        <td>
+                            <div class="progress" style="height: 18px;">
+                                <div class="progress-bar {% if s.percentage < 75 %}bg-danger{% else %}bg-success{% endif %}"
+                                     style="width: {{ s.percentage }}%;">
+                                    {{ s.percentage }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card-body">
+            <div class="alert alert-info mb-0">No attendance data for the selected filters yet.</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================================================== -->
+    <!-- SUBJECT-WISE -->
+    <!-- ================================================== -->
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <strong>Subject-wise Attendance</strong>
+        </div>
+
+        {% if subject_rows %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Subject</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in subject_rows %}
+                    <tr>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.total }}</td>
+                        <td><span class="badge bg-success">{{ s.present }}</span></td>
+                        <td><span class="badge bg-danger">{{ s.absent }}</span></td>
+                        <td>
+                            <div class="progress" style="height: 18px;">
+                                <div class="progress-bar {% if s.percentage < 75 %}bg-danger{% else %}bg-success{% endif %}"
+                                     style="width: {{ s.percentage }}%;">
+                                    {{ s.percentage }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card-body">
+            <div class="alert alert-info mb-0">No attendance data for the selected filters yet.</div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

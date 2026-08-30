@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Attendance | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-clipboard-check text-warning"></i>
+                Mark Attendance
+            </h2>
+            <p class="text-muted mb-0">
+                Select a subject and date to mark attendance.
+            </p>
+        </div>
+
+        <a href="{{ url_for('attendance.history') }}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            View History
+        </a>
+
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- ================================================== -->
+    <!-- SUBJECT + DATE PICKER -->
+    <!-- ================================================== -->
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            {% if not subjects %}
+
+                <div class="alert alert-warning mb-0">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    You need to add at least one subject before you can mark attendance.
+                    <a href="{{ url_for('subjects.add_subject') }}">Add a subject</a>
+                </div>
+
+            {% else %}
+
+                <form method="GET" action="{{ url_for('attendance.mark_attendance') }}" class="row g-3 align-items-end">
+
+                    <div class="col-md-5">
+                        <label class="form-label">Subject</label>
+                        <select name="subject_id" class="form-select" required>
+                            <option value="">-- Select subject --</option>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}"
+                                    {% if selected_subject and selected_subject.id == subject.id %}selected{% endif %}>
+                                    {{ subject.name }}{% if subject.code %} ({{ subject.code }}){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Date</label>
+                        <input type="date" name="date" class="form-control"
+                               value="{{ selected_date or today }}" max="{{ today }}" required>
+                    </div>
+
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            Load Students
+                        </button>
+                    </div>
+
+                </form>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- ================================================== -->
+    <!-- STUDENT LIST -->
+    <!-- ================================================== -->
+
+    {% if selected_subject %}
+
+        {% if not students %}
+
+            <div class="alert alert-info">
+                <i class="fa-solid fa-circle-info"></i>
+                You don't have any students yet.
+                <a href="{{ url_for('students.add_student_page') }}">Add a student</a>
+            </div>
+
+        {% else %}
+
+            <form method="POST" action="{{ url_for('attendance.mark_attendance') }}">
+
+                <input type="hidden" name="subject_id" value="{{ selected_subject.id }}">
+                <input type="hidden" name="date" value="{{ selected_date }}">
+
+                <div class="card shadow-sm">
+
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <strong>
+                            {{ selected_subject.name }} &mdash; {{ selected_date }}
+                        </strong>
+
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-success" onclick="markAll('Present')">
+                                Mark All Present
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" onclick="markAll('Absent')">
+                                Mark All Absent
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Roll No</th>
+                                    <th>Student</th>
+                                    <th>Batch</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                {% set current_status = existing_map.get(student.id, "Present") %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ student.roll_number }}</td>
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.batch or "-" }}</td>
+                                    <td class="text-center">
+
+                                        <div class="btn-group status-toggle" role="group">
+
+                                            <input type="radio" class="btn-check" autocomplete="off"
+                                                   name="status_{{ student.id }}" id="present_{{ student.id }}"
+                                                   value="Present" {% if current_status == "Present" %}checked{% endif %}>
+                                            <label class="btn btn-outline-success btn-sm" for="present_{{ student.id }}">
+                                                <i class="fa-solid fa-check"></i> Present
+                                            </label>
+
+                                            <input type="radio" class="btn-check" autocomplete="off"
+                                                   name="status_{{ student.id }}" id="absent_{{ student.id }}"
+                                                   value="Absent" {% if current_status == "Absent" %}checked{% endif %}>
+                                            <label class="btn btn-outline-danger btn-sm" for="absent_{{ student.id }}">
+                                                <i class="fa-solid fa-xmark"></i> Absent
+                                            </label>
+
+                                        </div>
+
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card-footer bg-white text-end">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fa-solid fa-save"></i>
+                            Save Attendance
+                        </button>
+                    </div>
+
+                </div>
+
+            </form>
+
+        {% endif %}
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markAll(status) {
+    document.querySelectorAll('input[value="' + status + '"]').forEach(function (el) {
+        el.checked = true;
+    });
+}
+</script>
+{% endblock %}

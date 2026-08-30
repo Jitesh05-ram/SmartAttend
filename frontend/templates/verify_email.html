@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Email Verification | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-6">
+
+            <div class="card shadow-sm text-center">
+
+                <div class="card-body p-5">
+
+                    {% if success %}
+
+                        <i class="fa-solid fa-circle-check text-success fa-4x mb-3"></i>
+
+                        <h2 class="text-success">
+                            Email Verified!
+                        </h2>
+
+                        <p class="text-muted">
+                            {{ message }}
+                        </p>
+
+                        <a
+                            href="{{ url_for('auth.login') }}"
+                            class="btn btn-primary">
+
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            Go to Login
+
+                        </a>
+
+                    {% else %}
+
+                        <i class="fa-solid fa-circle-xmark text-danger fa-4x mb-3"></i>
+
+                        <h2 class="text-danger">
+                            Verification Failed
+                        </h2>
+
+                        <p class="text-muted">
+                            {{ message }}
+                        </p>
+
+                        <a
+                            href="{{ url_for('auth.register') }}"
+                            class="btn btn-primary">
+
+                            Register Again
+
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

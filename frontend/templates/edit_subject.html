@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Subject | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="auth-card">
+
+        <h2 class="mb-4">
+            <i class="fa-solid fa-pen"></i>
+            Edit Subject
+        </h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('subjects.edit_subject', subject_id=subject.id) }}">
+
+            <div class="mb-3">
+                <label class="form-label">Subject Name</label>
+                <input type="text" name="name" class="form-control" value="{{ subject.name }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Subject Code</label>
+                <input type="text" name="code" class="form-control" value="{{ subject.code or '' }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-save"></i>
+                Save Changes
+            </button>
+
+            <a href="{{ url_for('subjects.list_subjects') }}" class="btn btn-secondary">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
