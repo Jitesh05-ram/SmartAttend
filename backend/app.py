@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, app
 
 from backend.config import Config
 from backend import db, login_manager, mail, csrf
