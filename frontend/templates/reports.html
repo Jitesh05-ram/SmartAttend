@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Reports | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-chart-column text-danger"></i>
+                Attendance Reports
+            </h2>
+            <p class="text-muted mb-0">
+                Overall statistics and downloadable reports.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap w-100 w-md-auto">
+            <a href="{{ url_for('reports.export_excel', subject_id=selected_subject.id if selected_subject else '', date_from=date_from, date_to=date_to) }}"
+               class="btn btn-success flex-fill flex-md-grow-0">
+                <i class="fa-solid fa-file-excel"></i>
+                Excel
+            </a>
+            <a href="{{ url_for('reports.export_pdf', subject_id=selected_subject.id if selected_subject else '', date_from=date_from, date_to=date_to) }}"
+               class="btn btn-danger flex-fill flex-md-grow-0">
+                <i class="fa-solid fa-file-pdf"></i>
+                PDF
+            </a>
+        </div>
+
+    </div>
+
+    <!-- ================================================== -->
+    <!-- FILTERS -->
+    <!-- ================================================== -->
+
+    <div class="card mb-4">
+        <div class="card-body">
+
+            <form method="GET" action="{{ url_for('reports.reports_page') }}" class="row g-3 align-items-end">
+
+                <!-- carry over the Monthly Register filters below, so
+                     applying this form doesn't reset that section -->
+                <input type="hidden" name="m_subject_id" value="{{ m_subject_id or '' }}">
+                <input type="hidden" name="m_batch_id" value="{{ m_batch_id or '' }}">
+                <input type="hidden" name="m_academic_year" value="{{ m_academic_year or '' }}">
+                <input type="hidden" name="m_month" value="{{ m_month }}">
+                <input type="hidden" name="m_year" value="{{ m_year }}">
+
+                <div class="col-md-4">
+                    <label class="form-label">Subject</label>
+                    <select name="subject_id" class="form-select">
+                        <option value="">All Subjects</option>
+                        {% for subject in subjects %}
+                            <option value="{{ subject.id }}"
+                                {% if selected_subject and selected_subject.id == subject.id %}selected{% endif %}>
+                                {{ subject.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">From</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">To</label>
+                    <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fa-solid fa-filter"></i>
+                        Apply
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ================================================== -->
+    <!-- SUMMARY CARDS -->
+    <!-- ================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-primary mb-2"><i class="fa-solid fa-users"></i></div>
+                    <h6 class="text-muted">Total Students</h6>
+                    <h2 class="fw-bold">{{ total_students }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-success mb-2"><i class="fa-solid fa-check"></i></div>
+                    <h6 class="text-muted">Present</h6>
+                    <h2 class="fw-bold">{{ total_present }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-danger mb-2"><i class="fa-solid fa-xmark"></i></div>
+                    <h6 class="text-muted">Absent</h6>
+                    <h2 class="fw-bold">{{ total_absent }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-warning mb-2"><i class="fa-solid fa-percent"></i></div>
+                    <h6 class="text-muted">Attendance %</h6>
+                    <h2 class="fw-bold">{{ overall_percentage }}%</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================================================== -->
+    <!-- STUDENT-WISE -->
+    <!-- ================================================== -->
+
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <strong>Student-wise Attendance</strong>
+        </div>
+
+        {% if student_rows %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Student</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in student_rows %}
+                    <tr>
+                        <td>{{ s.roll_number }}</td>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.total }}</td>
+                        <td><span class="badge status-badge-present">{{ s.present }}</span></td>
+                        <td><span class="badge status-badge-absent">{{ s.absent }}</span></td>
+                        <td>
+                            <div class="progress" style="height: 18px;">
+                                <div class="progress-bar {% if s.percentage < 75 %}bg-danger{% else %}bg-success{% endif %}"
+                                     style="width: {{ s.percentage }}%;">
+                                    {{ s.percentage }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card-body">
+            <div class="alert alert-info mb-0">No attendance data for the selected filters yet.</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================================================== -->
+    <!-- SUBJECT-WISE -->
+    <!-- ================================================== -->
+
+    <div class="card">
+        <div class="card-header bg-white">
+            <strong>Subject-wise Attendance</strong>
+        </div>
+
+        {% if subject_rows %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Subject</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in subject_rows %}
+                    <tr>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.total }}</td>
+                        <td><span class="badge status-badge-present">{{ s.present }}</span></td>
+                        <td><span class="badge status-badge-absent">{{ s.absent }}</span></td>
+                        <td>
+                            <div class="progress" style="height: 18px;">
+                                <div class="progress-bar {% if s.percentage < 75 %}bg-danger{% else %}bg-success{% endif %}"
+                                     style="width: {{ s.percentage }}%;">
+                                    {{ s.percentage }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card-body">
+            <div class="alert alert-info mb-0">No attendance data for the selected filters yet.</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================================================== -->
+    <!-- MONTHLY ATTENDANCE REGISTER -->
+    <!-- ================================================== -->
+
+    <div class="card mt-4">
+        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+
+            <strong>
+                <i class="fa-solid fa-table-list text-primary"></i>
+                Monthly Attendance Register
+            </strong>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('reports.export_monthly_excel', m_subject_id=m_subject_id or '', m_batch_id=m_batch_id or '', m_academic_year=m_academic_year or '', m_month=m_month, m_year=m_year) }}"
+                   class="btn btn-success btn-sm">
+                    <i class="fa-solid fa-file-excel"></i>
+                    Excel
+                </a>
+                <a href="{{ url_for('reports.export_monthly_pdf', m_subject_id=m_subject_id or '', m_batch_id=m_batch_id or '', m_academic_year=m_academic_year or '', m_month=m_month, m_year=m_year) }}"
+                   class="btn btn-danger btn-sm">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    PDF
+                </a>
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="GET" action="{{ url_for('reports.reports_page') }}" class="row g-3 align-items-end mb-4">
+
+                <!-- carry over the Summary Report filters above, so
+                     applying this form doesn't reset that section -->
+                <input type="hidden" name="subject_id" value="{{ selected_subject.id if selected_subject else '' }}">
+                <input type="hidden" name="date_from" value="{{ date_from }}">
+                <input type="hidden" name="date_to" value="{{ date_to }}">
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Academic Year</label>
+                    <select name="m_academic_year" class="form-select">
+                        <option value="">All</option>
+                        {% for y in academic_years %}
+                            <option value="{{ y }}" {% if m_academic_year == y %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Batch</label>
+                    <select name="m_batch_id" class="form-select">
+                        <option value="">All</option>
+                        {% for b in batches %}
+                            <option value="{{ b.id }}" {% if m_batch_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Subject</label>
+                    <select name="m_subject_id" class="form-select" required>
+                        <option value="">-- Select subject --</option>
+                        {% for subject in subjects %}
+                            <option value="{{ subject.id }}" {% if m_subject_id == subject.id %}selected{% endif %}>
+                                {{ subject.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Month</label>
+                    <select name="m_month" class="form-select">
+                        {% for num, label in month_choices %}
+                            <option value="{{ num }}" {% if m_month == num %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Year</label>
+                    <input type="number" name="m_year" class="form-control" value="{{ m_year }}" min="2000" max="2100">
+                </div>
+
+                <div class="col-12 col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fa-solid fa-filter"></i>
+                    </button>
+                </div>
+
+            </form>
+
+            {% if not monthly_subject %}
+                <div class="alert alert-info mb-0">
+                    Select a subject, month and year above, then click Apply to generate the register.
+                </div>
+            {% elif not monthly_register.rows %}
+                <div class="alert alert-info mb-0">No students found for the selected filters.</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered mb-0 align-middle" style="font-size: 0.8rem; white-space: nowrap;">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Roll No</th>
+                                <th>Student</th>
+                                {% for d in monthly_register.dates %}
+                                    <th class="text-center">{{ d.strftime("%d %b") }}</th>
+                                {% endfor %}
+                                <th class="text-center">Present</th>
+                                <th class="text-center">Absent</th>
+                                <th class="text-center">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in monthly_register.rows %}
+                            <tr>
+                                <td>{{ r.roll_number }}</td>
+                                <td>{{ r.name }}</td>
+                                {% for mark in r.day_marks %}
+                                    <td class="text-center {% if mark == 'P' %}text-success fw-bold{% elif mark == 'A' %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                        {{ mark }}
+                                    </td>
+                                {% endfor %}
+                                <td class="text-center">{{ r.present }}</td>
+                                <td class="text-center">{{ r.absent }}</td>
+                                <td class="text-center">{{ r.percentage }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

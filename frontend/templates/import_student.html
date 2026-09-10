@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Import Students | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1">
+
+                        <i class="fa-solid fa-file-import text-success"></i>
+
+                        Import Students
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+                        Upload multiple students using Excel or CSV.
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="{{ url_for('students.student_list') }}"
+                    class="btn btn-secondary">
+
+                    <i class="fa-solid fa-arrow-left"></i>
+
+                    Back
+
+                </a>
+
+            </div>
+
+
+            <!-- Flash Messages -->
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+                {% if messages %}
+
+                    {% for category, message in messages %}
+
+                        <div
+                            class="alert alert-{{ category }} alert-dismissible fade show"
+                            role="alert">
+
+                            {{ message }}
+
+                            <button
+                                type="button"
+                                class="btn-close"
+                                data-bs-dismiss="alert">
+                            </button>
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            <!-- Upload Card -->
+
+            <div class="card">
+
+                <div class="card-body p-4">
+
+                    <div class="text-center mb-4">
+
+                        <i class="fa-solid fa-file-excel fa-4x text-success mb-3"></i>
+
+                        <h4 class="fw-bold">
+                            Bulk Student Upload
+                        </h4>
+
+                        <p class="text-muted">
+                            Upload an Excel or CSV file containing your students.
+                        </p>
+
+                    </div>
+
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('students.import_students') }}"
+                        enctype="multipart/form-data"
+                    >
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+                                Select File
+                            </label>
+
+                            <input
+                                type="file"
+                                name="file"
+                                class="form-control"
+                                accept=".csv,.xlsx,.xls"
+                                required
+                            >
+
+                            <div class="form-text">
+                                Supported formats: CSV, XLSX and XLS
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-success w-100">
+
+                            <i class="fa-solid fa-upload"></i>
+
+                            Upload Students
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            <!-- File Format -->
+
+            <div class="card mt-4">
+
+                <div class="card-body p-4">
+
+                    <h5 class="fw-bold">
+
+                        <i class="fa-solid fa-table"></i>
+
+                        Required File Format
+
+                    </h5>
+
+                    <p class="text-muted">
+                        Your first row should contain column names.
+                    </p>
+
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered">
+
+                            <thead class="table-light">
+
+                                <tr>
+                                    <th>roll_number</th>
+                                    <th>name</th>
+                                    <th>batch</th>
+                                    <th>year</th>
+                                    <th>email</th>
+                                    <th>phone</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                <tr>
+                                    <td>101</td>
+                                    <td>Rahul Kumar</td>
+                                    <td>A</td>
+                                    <td>FY</td>
+                                    <td>rahul@example.com</td>
+                                    <td>9876543210</td>
+                                </tr>
+
+                                <tr>
+                                    <td>102</td>
+                                    <td>Priya Sharma</td>
+                                    <td>A</td>
+                                    <td>FY</td>
+                                    <td>priya@example.com</td>
+                                    <td>9876543211</td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <div class="alert alert-info mb-0">
+
+                        <i class="fa-solid fa-circle-info"></i>
+
+                        <strong>Note:</strong>
+
+                        Roll Number and Name are required.
+                        Existing roll numbers for your account will be skipped.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

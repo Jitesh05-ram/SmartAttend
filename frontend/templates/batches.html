@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Batch | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-calendar-days text-primary"></i>
+                Manage Batch
+            </h2>
+            <p class="text-muted mb-0">
+                Create, rename, or remove the batches you use to group students and subjects.
+            </p>
+        </div>
+
+        <a href="{{ url_for('batches.add_batch', next=url_for('batches.list_batches')) }}" class="btn btn-success">
+            <i class="fa-solid fa-plus"></i>
+            Add Batch
+        </a>
+
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category_flash, message in messages %}
+                <div class="alert alert-{{ category_flash }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- ================================================== -->
+    <!-- SEARCH -->
+    <!-- ================================================== -->
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('batches.list_batches') }}" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Search batches..." value="{{ search }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fa-solid fa-magnifying-glass"></i> Search
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url_for('batches.list_batches') }}" class="btn btn-outline-secondary w-100">
+                        Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================================================== -->
+    <!-- BATCH CARDS -->
+    <!-- ================================================== -->
+
+    {% if batches %}
+
+        <div class="row g-3">
+            {% for batch in batches %}
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold mb-0">
+                                <i class="fa-solid fa-calendar text-primary"></i>
+                                {{ batch.name }}
+                            </h5>
+                        </div>
+
+                        <div class="d-flex gap-2 mb-3">
+                            <span class="badge bg-secondary">
+                                {{ student_counts.get(batch.id, 0) }} student(s)
+                            </span>
+                            <span class="badge bg-secondary">
+                                {{ subject_counts.get(batch.id, 0) }} subject(s)
+                            </span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('batches.edit_batch', batch_id=batch.id) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </a>
+
+                            <form method="POST" action="{{ url_for('batches.delete_batch', batch_id=batch.id) }}"
+                                  onsubmit="return confirm('Delete this batch? Students and subjects using it will become unassigned. Their attendance history is not affected.');">
+
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+
+        <div class="text-center py-5">
+            <i class="fa-solid fa-calendar-days fa-4x text-muted mb-3"></i>
+
+            {% if search %}
+                <h4>No Batches Match Your Search</h4>
+                <a href="{{ url_for('batches.list_batches') }}" class="btn btn-outline-secondary">
+                    Clear Search
+                </a>
+            {% else %}
+                <h4>No Batches Yet</h4>
+                <p class="text-muted">Add batches like FY, SY, TY, or any label that fits how you organize students.</p>
+                <a href="{{ url_for('batches.add_batch', next=url_for('batches.list_batches')) }}" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i> Add Your First Batch
+                </a>
+            {% endif %}
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

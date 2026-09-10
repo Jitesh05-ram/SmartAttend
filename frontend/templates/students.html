@@ -1,0 +1,633 @@
+{% extends "base.html" %}
+
+{% block title %}Students | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- ================================================== -->
+    <!-- HEADER -->
+    <!-- ================================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="fa-solid fa-users text-primary"></i>
+
+                Students
+
+            </h2>
+
+            <p class="text-muted mb-0">
+                Manage all students in your SmartAttend account.
+            </p>
+
+        </div>
+
+
+        <div class="d-flex gap-2 flex-wrap">
+
+            <a
+                href="{{ url_for('dashboard.dashboard') }}"
+                class="btn btn-secondary">
+
+                <i class="fa-solid fa-arrow-left"></i>
+
+                Dashboard
+
+            </a>
+
+
+            <a
+                href="{{ url_for('students.import_students_page') }}"
+                class="btn btn-success">
+
+                <i class="fa-solid fa-file-import"></i>
+
+                Import Students
+
+            </a>
+
+
+            <a
+                href="{{ url_for('students.add_student_page') }}"
+                class="btn btn-primary">
+
+                <i class="fa-solid fa-user-plus"></i>
+
+                Add Student
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- FLASH MESSAGES -->
+    <!-- ================================================== -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div
+                    class="alert alert-{{ category }} alert-dismissible fade show"
+                    role="alert">
+
+                    {{ message }}
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                    </button>
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <!-- ================================================== -->
+    <!-- FILTERS -->
+    <!-- ================================================== -->
+
+    <div class="card mb-4">
+        <div class="card-body">
+
+            <!-- Batch — chip bar, works on all screen sizes -->
+            <div class="filter-chip-bar mb-3">
+
+                <a href="{{ url_for('students.student_list', search=filters.search, batch=filters.batch) }}"
+                   class="filter-chip {% if not filters.batch_id %}active{% endif %}">
+                    All Batches
+                </a>
+
+                {% for b in batches %}
+                <a href="{{ url_for('students.student_list', search=filters.search, batch=filters.batch, batch_id=b.id) }}"
+                   class="filter-chip {% if filters.batch_id == b.id %}active{% endif %}">
+                    {{ b.name }}
+                </a>
+                {% endfor %}
+
+                <a href="{{ url_for('batches.add_batch', next=url_for('students.student_list')) }}"
+                   class="filter-chip" style="border-style:dashed;">
+                    <i class="fa-solid fa-plus"></i>&nbsp;Add Batch
+                </a>
+
+                {% if batches %}
+                <a href="{{ url_for('batches.list_batches') }}" class="filter-chip" title="Manage batches">
+                    <i class="fa-solid fa-gear"></i>
+                </a>
+                {% endif %}
+
+            </div>
+
+            <form method="GET" action="{{ url_for('students.student_list') }}" class="row g-3 align-items-end">
+
+                <input type="hidden" name="batch_id" value="{{ filters.batch_id or '' }}">
+
+                <div class="col-12 col-md-5">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Name, roll number, or email" value="{{ filters.search }}">
+                </div>
+
+                <div class="col-8 col-md-3">
+                    <label class="form-label">Batch</label>
+                    <select name="batch" class="form-select">
+                        <option value="">All Batches</option>
+                        {% for b in all_batches %}
+                            <option value="{{ b }}" {% if filters.batch == b %}selected{% endif %}>{{ b }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-2 col-md-2">
+                    <button type="submit" class="btn btn-primary w-100" title="Apply filters">
+                        <i class="fa-solid fa-filter"></i><span class="d-none d-md-inline"> Apply</span>
+                    </button>
+                </div>
+
+                <div class="col-2 col-md-2">
+                    <a href="{{ url_for('students.student_list') }}" class="btn btn-outline-secondary w-100" title="Clear filters">
+                        <i class="fa-solid fa-xmark d-md-none"></i><span class="d-none d-md-inline">Clear</span>
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- STUDENT SUMMARY -->
+    <!-- ================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="me-3">
+
+                            <i class="fa-solid fa-users fa-2x text-primary"></i>
+
+                        </div>
+
+                        <div>
+
+                            <small class="text-muted">
+                                Total Students
+                            </small>
+
+                            <h3 class="mb-0 fw-bold">
+                                {{ students|length }}
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- STUDENT TABLE -->
+    <!-- ================================================== -->
+
+    <div class="card">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+
+                <h4 class="fw-bold mb-0">
+
+                    <i class="fa-solid fa-list"></i>
+
+                    Student List
+
+                </h4>
+
+
+                {% if students %}
+
+                    <span class="badge bg-primary">
+
+                        {{ students|length }} Student(s)
+
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+            {% if students %}
+
+            <form method="POST" action="{{ url_for('students.bulk_delete_students') }}"
+                  onsubmit="return confirmBulkDeleteStudents();">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- ============================================== -->
+                <!-- BULK SELECT TOOLBAR -->
+                <!-- ============================================== -->
+
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 p-2 rounded"
+                     style="background:var(--sa-bg);">
+
+                    <div class="form-check ms-1">
+                        <input class="form-check-input" type="checkbox" id="selectAllStudents"
+                               onchange="toggleSelectAllStudents(this)">
+                        <label class="form-check-label fw-semibold" for="selectAllStudents">
+                            Select All
+                        </label>
+                    </div>
+
+                    <button type="submit" id="bulkDeleteBtn" class="btn btn-outline-danger btn-sm" disabled>
+                        <i class="fa-solid fa-trash"></i>
+                        Delete Selected<span id="bulkDeleteCount"></span>
+                    </button>
+
+                </div>
+
+                <!-- ============================================== -->
+                <!-- MOBILE / TABLET CARDS (below lg breakpoint) -->
+                <!-- ============================================== -->
+
+                <div class="d-lg-none">
+
+                    {% for student in students %}
+
+                        <div class="entity-card">
+
+                            <div class="form-check pt-1">
+                                <input class="form-check-input student-select-checkbox" type="checkbox"
+                                       name="student_ids" value="{{ student.id }}"
+                                       aria-label="Select {{ student.name }}">
+                            </div>
+
+                            <div class="entity-avatar">
+                                {{ student.name[0]|upper }}
+                            </div>
+
+                            <div class="entity-card-body">
+
+                                <div class="entity-card-title">
+                                    {{ student.name }}
+                                </div>
+
+                                <div class="entity-card-meta">
+                                    <span>Roll: <strong>{{ student.roll_number }}</strong></span>
+
+                                    {% if student.batch %}
+                                        <span>Batch: <strong>{{ student.batch }}</strong></span>
+                                    {% endif %}
+
+                                    {% if student.assigned_batch %}
+                                        <span class="badge year-badge">
+                                            {{ student.assigned_batch.name }}
+                                        </span>
+                                    {% endif %}
+                                    {% if student.academic_year %}
+                                        <span>AY: <strong>{{ student.academic_year }}</strong></span>
+                                    {% endif %}
+                                </div>
+
+                                {% if student.email or student.phone %}
+                                <div class="entity-card-meta">
+                                    {% if student.email %}<span><i class="fa-solid fa-envelope"></i> {{ student.email }}</span>{% endif %}
+                                    {% if student.phone %}<span><i class="fa-solid fa-phone"></i> {{ student.phone }}</span>{% endif %}
+                                </div>
+                                {% endif %}
+
+                                <div class="entity-card-actions">
+
+                                    <a href="{{ url_for('students.edit_student_page', student_id=student.id) }}"
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </a>
+
+                                    <button type="submit"
+                                            formaction="{{ url_for('students.delete_student', student_id=student.id) }}"
+                                            class="btn btn-outline-danger btn-sm w-100"
+                                            onclick="return confirm('Delete {{ student.name }}? This will also remove their attendance records.');">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <!-- ============================================== -->
+                <!-- DESKTOP TABLE (lg and above) -->
+                <!-- ============================================== -->
+
+                <div class="table-responsive d-none d-lg-block">
+
+                    <table
+                        class="table table-hover align-middle"
+                        id="studentTable">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th style="width:40px;">
+                                    <input class="form-check-input" type="checkbox" id="selectAllStudentsDesktop"
+                                           onchange="toggleSelectAllStudents(this)" aria-label="Select all">
+                                </th>
+
+                                <th>#</th>
+
+                                <th>Roll Number</th>
+
+                                <th>Name</th>
+
+                                <th>Batch</th>
+
+                                <th>Batch Group</th>
+
+                                <th>Academic Year</th>
+
+                                <th>Email</th>
+
+                                <th>Phone</th>
+
+                                <th class="text-center">
+                                    Actions
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for student in students %}
+
+                                <tr>
+
+                                    <td>
+                                        <input class="form-check-input student-select-checkbox" type="checkbox"
+                                               name="student_ids" value="{{ student.id }}"
+                                               aria-label="Select {{ student.name }}">
+                                    </td>
+
+                                    <td>
+                                        {{ loop.index }}
+                                    </td>
+
+
+                                    <td>
+
+                                        <strong>
+                                            {{ student.roll_number }}
+                                        </strong>
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ student.name }}
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if student.batch %}
+
+                                            <span class="badge bg-info text-dark">
+                                                {{ student.batch }}
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if student.assigned_batch %}
+
+                                            <span class="badge year-badge">
+                                                {{ student.assigned_batch.name }}
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if student.academic_year %}
+
+                                            {{ student.academic_year }}
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if student.email %}
+
+                                            {{ student.email }}
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if student.phone %}
+
+                                            {{ student.phone }}
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <div class="d-flex justify-content-center gap-1">
+
+                                            <!-- EDIT -->
+
+                                            <a
+                                                href="{{ url_for(
+                                                    'students.edit_student_page',
+                                                    student_id=student.id
+                                                ) }}"
+                                                class="btn btn-sm btn-outline-primary"
+                                                title="Edit Student">
+
+                                                <i class="fa-solid fa-pen"></i>
+
+                                            </a>
+
+
+                                            <!-- DELETE -->
+
+                                            <button
+                                                type="submit"
+                                                formaction="{{ url_for(
+                                                    'students.delete_student',
+                                                    student_id=student.id
+                                                ) }}"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Delete Student"
+                                                onclick="return confirm('Delete {{ student.name }}? This will also remove their attendance records.');">
+
+                                                <i class="fa-solid fa-trash"></i>
+
+                                            </button>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </form>
+
+            {% else %}
+
+                <!-- ================================================== -->
+                <!-- NO STUDENTS -->
+                <!-- ================================================== -->
+
+                <div class="text-center py-5">
+
+                    <i class="fa-solid fa-user-graduate fa-4x text-muted mb-3"></i>
+
+                    {% if filters.search or filters.batch_id or filters.batch %}
+
+                        <h4>No Students Match Your Filters</h4>
+                        <p class="text-muted">Try clearing filters or searching for something else.</p>
+                        <a href="{{ url_for('students.student_list') }}" class="btn btn-outline-secondary">
+                            Clear Filters
+                        </a>
+
+                    {% else %}
+
+                    <h4>
+                        No Students Found
+                    </h4>
+
+                    <p class="text-muted">
+                        You haven't added any students yet.
+                    </p>
+
+
+                    <div class="d-flex justify-content-center gap-2">
+
+                        <a
+                            href="{{ url_for('students.add_student_page') }}"
+                            class="btn btn-primary">
+
+                            <i class="fa-solid fa-user-plus"></i>
+
+                            Add Student
+
+                        </a>
+
+
+                        <a
+                            href="{{ url_for('students.import_students_page') }}"
+                            class="btn btn-success">
+
+                            <i class="fa-solid fa-file-import"></i>
+
+                            Import Excel/CSV
+
+                        </a>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

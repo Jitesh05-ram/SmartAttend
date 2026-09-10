@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="fw-bold h3 mb-1">
+                Dashboard
+            </h1>
+
+            <p class="text-muted mb-0">
+                Welcome back, {{ current_user.name }}
+            </p>
+        </div>
+
+        <div class="d-none d-lg-block">
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Logout
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- ================================================== -->
+    <!-- TODAY'S ATTENDANCE -->
+    <!-- ================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-6 col-lg-3">
+            <div class="dashboard-card bg-blue h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small opacity-75">Today's Attendance</div>
+                        <div class="h2 fw-bold mb-0">
+                            {% if today_percentage is not none %}
+                                {{ today_percentage }}%
+                            {% else %}
+                                —
+                            {% endif %}
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-calendar-day fs-3 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="dashboard-card bg-green h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small opacity-75">Present Today</div>
+                        <div class="h2 fw-bold mb-0">{{ today_present }}</div>
+                    </div>
+                    <i class="fa-solid fa-circle-check fs-3 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="dashboard-card bg-red h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small opacity-75">Absent Today</div>
+                        <div class="h2 fw-bold mb-0">{{ today_absent }}</div>
+                    </div>
+                    <i class="fa-solid fa-circle-xmark fs-3 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="dashboard-card bg-orange h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small opacity-75">Total Subjects</div>
+                        <div class="h2 fw-bold mb-0">{{ subject_count }}</div>
+                    </div>
+                    <i class="fa-solid fa-book fs-3 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================================================== -->
+    <!-- STUDENTS BY BATCH -->
+    <!-- ================================================== -->
+
+    <h6 class="text-muted fw-bold text-uppercase small mb-2" style="letter-spacing:.04em;">
+        Students by Batch
+    </h6>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <div class="stat-label">Total Students</div>
+                <div class="stat-value">{{ student_count }}</div>
+            </div>
+        </div>
+
+        {% for b in batch_counts %}
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <div class="stat-label">{{ b.name }}</div>
+                <div class="stat-value">{{ b.count }}</div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if unassigned_count %}
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <div class="stat-label">No Batch Set</div>
+                <div class="stat-value">{{ unassigned_count }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not batch_counts %}
+        <div class="col-12">
+            <div class="alert alert-info mb-0">
+                <i class="fa-solid fa-circle-info"></i>
+                You haven't added any batches yet.
+                <a href="{{ url_for('batches.add_batch', next=url_for('dashboard.dashboard')) }}">Add your first batch</a>
+                to start organizing students by FY / SY / TY or any label you like.
+            </div>
+        </div>
+        {% endif %}
+
+
+    </div>
+
+    <!-- ================================================== -->
+    <!-- QUICK ACTIONS -->
+    <!-- ================================================== -->
+
+    <div class="card">
+
+        <div class="card-body">
+
+            <h6 class="fw-bold mb-3">
+                Quick Actions
+            </h6>
+
+            <div class="row g-3">
+
+                <div class="col-6 col-lg-3">
+                    <a href="{{ url_for('students.add_student_page') }}"
+                       class="btn btn-outline-primary w-100 py-3 flex-column">
+                        <i class="fa-solid fa-user-plus fs-5"></i>
+                        Add Student
+                    </a>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <a href="{{ url_for('students.import_students_page') }}"
+                       class="btn btn-outline-success w-100 py-3 flex-column">
+                        <i class="fa-solid fa-file-import fs-5"></i>
+                        Import Students
+                    </a>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <a href="{{ url_for('attendance.mark_attendance') }}"
+                       class="btn btn-outline-warning w-100 py-3 flex-column">
+                        <i class="fa-solid fa-clipboard-check fs-5"></i>
+                        Take Attendance
+                    </a>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <a href="{{ url_for('reports.reports_page') }}"
+                       class="btn btn-outline-danger w-100 py-3 flex-column">
+                        <i class="fa-solid fa-file-export fs-5"></i>
+                        View Reports
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

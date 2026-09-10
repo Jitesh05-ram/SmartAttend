@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Batch | SmartAttend{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="auth-card">
+
+        <h2 class="mb-4">
+            <i class="fa-solid fa-pen"></i>
+            Edit Batch
+        </h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('batches.edit_batch', batch_id=batch.id) }}">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-3">
+                <label class="form-label">Batch Name</label>
+                <input type="text" name="name" class="form-control" maxlength="50" value="{{ batch.name }}" required autofocus>
+            </div>
+
+            <div class="d-flex flex-column flex-sm-row gap-2 mt-2">
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="fa-solid fa-save"></i>
+                    Save Changes
+                </button>
+
+                <a href="{{ url_for('batches.list_batches') }}" class="btn btn-outline-secondary flex-fill">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
